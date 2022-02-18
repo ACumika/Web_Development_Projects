@@ -10,7 +10,7 @@ def read_html(path_to_file):
     return body
 
 def img_count(body):
-    imgs = body.find_all('img')
+    imgs = body.find_all('img', width = True)
     count = 0
     for i in imgs:
         if int(i['width'])>=200:
@@ -26,49 +26,55 @@ def headers_count(body):
     return count
 
 def max_a(body):
-    a_list =body.find_all('a')
-    parents = []
-    for a in a_list:
-        if a.parent not in parents:
-            parents.append(a.parent)
-    print(len(a_list), len(parents))
+    counts = []
+    a_list = body.find_all('a')
+    for ass in a_list:
+        count = 1
+        for sib in ass.find_next_siblings():
+            if sib.name == 'a':
+                count = count + 1
+            else:
+                break
+            counts.append(count)
+    return max(counts)
 
-    for p in parents:
-        first_a = p.find('a')
-        print("new")
-        print(p.find_all('a'), first_a)
-        try:
-            print(first_a.nextSibling.name, first_a.nextSibling.nextsiblings.name)
-            if first_a.nextSibling.name == 'a':
-                print("a")
-        except:
-            break
-    return 5
+def olul_count(body):
+    ou_list=body.find_all('ol')
+    ou_list = ou_list + body.find_all('ul')
+    print(len(ou_list))
+    count = 0
+    for ou in ou_list:
+        #print(ou.parent.name)
+        if not ou.find_parents(['ul', 'ol','li']):
+            count = count +1
+    print(count)
+    return count
 
 def parse(path_to_file):
     body = read_html(path_to_file)
     imgs = img_count(body)
     headers = headers_count(body)
     linkslen = max_a(body)
-    lists = 1
+    lists = olul_count(body)
 
     return [imgs, headers, linkslen, lists]
 
 if __name__ == '__main__':
-    parse('wiki/Stone_Age')
+    parse('wiki/Artificial_intelligence')
 
-#class TestParse(unittest.TestCase):
-#    def test_parse(self):
-#        test_cases = (
-#            ('wiki/Stone_Age', [13, 10, 12, 40]),
-#            ('wiki/Brain', [19, 5, 25, 11]),
-#            ('wiki/Artificial_intelligence', [8, 19, 13, 198]),
-#            ('wiki/Python_(programming_language)', [2, 5, 17, 41]),
-#            ('wiki/Spectrogram', [1, 2, 4, 7]),)
+class TestParse(unittest.TestCase):
+    def test_parse(self):
+        test_cases = (
+            ('wiki/Stone_Age', [13, 10, 12, 40]),
+            ('wiki/Brain', [19, 5, 25, 11]),
+            ('wiki/Artificial_intelligence', [8, 19, 13, 198]),
+            ('wiki/Spectrogram', [1, 2, 4, 7]),
+            ('wiki/Python_(programming_language)', [2, 5, 17, 41]),
+        )
 
-#        for path, expected in test_cases:
-#            with self.subTest(path=path, expected=expected):
-#                self.assertEqual(parse(path), expected)
+        for path, expected in test_cases:
+            with self.subTest(path=path, expected=expected):
+                self.assertEqual(parse(path), expected)
 
 
 #if __name__ == '__main__':
